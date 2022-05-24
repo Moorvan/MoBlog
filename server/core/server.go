@@ -10,7 +10,7 @@ import (
 func RunServer() {
 	app := fiber.New()
 	app.Use(logger.New())
-	app.Static("/", "../hugoWeb/public")
+	app.Static("/", "../web/public")
 	if tags.Debug {
 		log.Fatalln(app.Listen(":8080"))
 	} else {

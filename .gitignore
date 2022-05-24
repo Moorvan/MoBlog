@@ -1,4 +1,3 @@
-/hugoWeb/public/
 /.idea
 /server/out.log
-/hugoWeb/resources/
+/web/public/
