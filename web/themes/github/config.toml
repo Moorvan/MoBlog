@@ -1,4 +1,4 @@
-baseURL = "https://morvan.dev/"
+baseURL = ""
 languageCode = "zh-cn"
 title = "Morvan's blog"
 theme = "github"
@@ -16,7 +16,7 @@ pygmentsUseClasses = true
 #   instagram = "MeiK2333"
 #   tumblr = "MeiK2333"
   email = "morvan@stu.ecnu.edu.cn"
-  url = "morvan.dev"
+  url = "https://morvan.dev"
   keywords = "blog, google analytics"
 #   rss = true
 #   lastmod = true
