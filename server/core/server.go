@@ -12,7 +12,7 @@ func RunServer() {
 	app.Use(logger.New())
 	app.Static("/", "../web/public")
 	if tags.Debug {
-		log.Fatalln(app.Listen(":8080"))
+		log.Fatalln(app.Listen("localhost:8080"))
 	} else {
 		log.Fatalln(app.ListenTLS(":443", "/etc/letsencrypt/live/morvan.dev/fullchain.pem", "/etc/letsencrypt/live/morvan.dev/privkey.pem"))
 	}
