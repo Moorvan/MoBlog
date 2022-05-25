@@ -1,0 +1,50 @@
+baseURL = "https://morvan.dev/"
+languageCode = "zh-cn"
+title = "Morvan's blog"
+theme = "github"
+googleAnalytics = "UA-123456-789"
+pygmentsCodeFences = true
+pygmentsUseClasses = true
+
+[params]
+  author = "Morvan X"
+  description = "Just do it."
+  github = "moorvan"
+#   facebook = "MeiK2333"
+#   twitter = "MeiK2333"
+#   linkedin = "MeiK2333"
+#   instagram = "MeiK2333"
+#   tumblr = "MeiK2333"
+  email = "morvan@stu.ecnu.edu.cn"
+  url = "morvan.dev"
+  keywords = "blog, google analytics"
+#   rss = true
+#   lastmod = true
+  userStatusEmoji = "😀"
+  favicon = "/images/github.png"
+  location = "Shanghai"
+#   enableGitalk = true
+
+  [params.gitalk]
+    clientID = "Your client ID"
+    clientSecret = "Your client secret"
+    repo = "repo"
+    owner = "MeiK2333"
+    admin = "MeiK2333"
+    id = "location.pathname"
+    labels = "gitalk"
+    perPage = 15
+    pagerDirection = "last"
+    createIssueManually = true
+    distractionFreeMode = false
+
+  [[params.links]]
+    title = "Link"
+    href = "https://github.com/meik2333"
+#   [[params.links]]
+#     title = "Link2"
+#     href = "https://meik2333.com"
+#     icon = "https://meik2333.com/images/avatar.png"
+
+[frontmatter]
+  lastmod = ["lastmod", ":fileModTime", ":default"]
