@@ -4,4 +4,9 @@ date: 2022-05-25T00:54:05+08:00
 draft: false
 ---
 
-# Readme
+# Skills
+- Go
+- C/C++
+- Python
+- Java
+- Rust
