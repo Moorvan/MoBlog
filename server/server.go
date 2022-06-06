@@ -1,7 +1,14 @@
 package main
 
-import "server/core"
+import (
+	"github.com/gofiber/fiber/v2"
+	"github.com/gofiber/fiber/v2/middleware/logger"
+	"log"
+)
 
 func main() {
-	core.RunServer()
+	app := fiber.New()
+	app.Use(logger.New())
+	app.Static("/", "../web/public")
+	log.Fatalln(app.Listen("localhost:8080"))
 }
