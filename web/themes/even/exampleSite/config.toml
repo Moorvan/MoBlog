@@ -1,14 +1,11 @@
-# baseURL = 'http://127.0.0.1:8080'
-# languageCode = "zh-cn"
-# title = "Morvan's blog"
-baseURL = "http://localhost:8080/"
+baseURL = "http://localhost:1313/"
 languageCode = "en"
 defaultContentLanguage = "en"                             # en / zh-cn / ... (This field determines which i18n file to use)
-title = "Morvan's Blog"
+title = "Even - A super concise theme for Hugo"
 preserveTaxonomyNames = true
 enableRobotsTXT = true
 enableEmoji = true
-theme = "Morvan"
+theme = "even"
 enableGitInfo = false # use git commit log to generate lastmod record # 可根据 Git 中的提交生成最近更新记录。
 
 # Syntax highlighting by Chroma. NOTE: Don't enable `highlightInClient` and `chroma` at the same time!
@@ -24,7 +21,7 @@ googleAnalytics = ""      # UA-XXXXXXXX-X
 copyright = ""            # default: author.name ↓        # 默认为下面配置的author.name ↓
 
 [author]                  # essential                     # 必需
-  name = "Morvan"
+  name = "olOwOlo"
 
 [sitemap]                 # essential                     # 必需
   changefreq = "weekly"
@@ -51,13 +48,6 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   weight = 40
   identifier = "categories"
   url = "/categories/"
-[[menu.main]]
-  name = "About"
-  weight = 50
-  identifier = "about"
-  url = "/readme"
-
-
 
 [params]
   version = "4.x"           # Used to give a friendly message when you have an incompatible update
@@ -69,7 +59,7 @@ copyright = ""            # default: author.name ↓        # 默认为下面配
   gitRepo = ""
 
   # site info (optional)                                  # 站点信息（可选，不需要的可以直接注释掉）
-  logoTitle = "Morvan"        # default: the title value    # 默认值: 上面设置的title值
+  logoTitle = "Even"        # default: the title value    # 默认值: 上面设置的title值
   keywords = ["Hugo", "theme","even"]
   description = "Hugo theme even example site."
 
