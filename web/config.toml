@@ -1,7 +1,7 @@
 # baseURL = 'http://127.0.0.1:8080'
 # languageCode = "zh-cn"
 # title = "Morvan's blog"
-baseURL = "http://localhost/"
+baseURL = ""
 languageCode = "zh"
 defaultContentLanguage = "zh-cn"                             # en / zh-cn / ... (This field determines which i18n file to use)
 title = "Morvan's Blog"
