@@ -1,4 +1,9 @@
 ---
+tags:
+- Notion
+- 笔记系统
+- 工具
+
 title: "基于notion的日记式无压笔记体系"
 date: 2022-06-16T16:32:44+08:00
 draft: true
@@ -13,7 +18,7 @@ draft: true
 
 在开始一件事情之前，乐此不疲，但是历久伤身的一件事情就是找到一件趁手的工具；在学习，工作和生活上，一款合适的笔记软件，以及和它配合默契的笔记方式则至关重要。
 
-笔者一开始使用笔记软件便是 [Notion](https://www.notion.so/product)，惊艳于其强大的数据库功能，将同一个数据库以表格、看板、时间线、日历、画廊 等不同的 view 进行呈现，同时进行编辑维护。
+笔者一开始使用笔记软件便是 [Notion](https://www.notion.so/product)，惊艳于其强大的数据库功能，将同一个数据库以表格、看板、时间线、日历、画廊等不同的 view 进行呈现，同时进行编辑维护。
 
 <video width=80% height=80% controls="controls">
 <source id="mp4" src="https://www.notion.so/front-static/pages/product/value-props/workflow-tile-v2/en-US.mp4" type="video/mp4">
