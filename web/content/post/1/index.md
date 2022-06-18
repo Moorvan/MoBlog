@@ -4,7 +4,7 @@ tags:
 - 笔记系统
 - 工具
 
-title: "基于notion的日记式无压笔记体系"
+title: "基于 Notion 的日记式无压笔记体系"
 date: 2022-06-16T16:32:44+08:00
 draft: true
 ---
