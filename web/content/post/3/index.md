@@ -147,4 +147,209 @@ log.Printf("Result: %+v\n", resp)
 
 # 原理过程
 
+## Server 端过程
+
+调用 rpc 的 Register 方法，该方法即：
+
+```go
+// Register publishes the receiver's methods in the DefaultServer.
+func Register(rcvr any) error { return DefaultServer.Register(rcvr) }
+```
+
+调用 rpc 包中 DefaultServer 的 Register 方法。
+
+DefaultServer 定义：
+
+```go
+// NewServer returns a new Server.
+func NewServer() *Server {
+	return &Server{}
+}
+
+// DefaultServer is the default instance of *Server.
+var DefaultServer = NewServer()
+```
+
+实例化的一个 Server，对于 rpc 包中的 Server：
+
+```go
+// Server represents an RPC Server.
+type Server struct {
+	serviceMap sync.Map   // map[string]*service
+	reqLock    sync.Mutex // protects freeReq
+	freeReq    *Request
+	respLock   sync.Mutex // protects freeResp
+	freeResp   *Response
+}
+```
+
+其中主要存储了 serviceMap，从 string 到 service 到映射，联想到在客户端请求时是传入了 服务+方法 的字符串。
+
+对于 DefaultServer 调用的 Register 方法：
+
+```go
+// Register publishes in the server the set of methods of the
+// receiver value that satisfy the following conditions:
+//	- exported method of exported type
+//	- two arguments, both of exported type
+//	- the second argument is a pointer
+//	- one return value, of type error
+// It returns an error if the receiver is not an exported type or has
+// no suitable methods. It also logs the error using package log.
+// The client accesses each method using a string of the form "Type.Method",
+// where Type is the receiver's concrete type.
+func (server *Server) Register(rcvr any) error {
+	return server.register(rcvr, "", false)
+}
+```
+
+调用了一个私有方法，增加了两个参数。注意到这里注释中说明了传入 any 类型的要求，即会暴露导出提供 RPC 服务的方法要求。可以看到实际上对外提供的注册方法是对 register 私有方法对封装，可以看到会有另一个 Register 的版本：
+
+```go
+// RegisterName is like Register but uses the provided name for the type
+// instead of the receiver's concrete type.
+func (server *Server) RegisterName(name string, rcvr any) error {
+	return server.register(rcvr, name, true)
+}
+```
+
+这个版本可以为该服务提供新的名字，而不是使用传入实例的类型名。接下来看 register 中：
+
+```go
+func (server *Server) register(rcvr any, name string, useName bool) error {
+	s := new(service) // 实例化 server 类型：
+	/*
+	type service struct {
+		name   string                 // name of service
+		rcvr   reflect.Value          // receiver of methods for the service
+		typ    reflect.Type           // type of the receiver
+		method map[string]*methodType // registered methods
+	}
+	*/
+	s.typ = reflect.TypeOf(rcvr) // 获取传入参数名
+	s.rcvr = reflect.ValueOf(rcvr) // 值
+	sname := reflect.Indirect(s.rcvr).Type().Name() // 获得结构体类型名
+	if useName {
+		sname = name
+	} // 如果有给定名字 sname 为给定名称
+	if sname == "" {
+		s := "rpc.Register: no service name for type " + s.typ.String()
+		log.Print(s)
+		return errors.New(s)
+	}
+	if !token.IsExported(sname) && !useName { // 判断名称是否为 公开 Public
+		s := "rpc.Register: type " + sname + " is not exported"
+		log.Print(s)
+		return errors.New(s)
+	}
+	s.name = sname
+
+	// Install the methods
+	s.method = suitableMethods(s.typ, logRegisterError) // 将合适的方法进行注册，存储到 method: map[string]*methodType 中：
+	/*
+	type methodType struct {
+		sync.Mutex // protects counters
+		method     reflect.Method
+		ArgType    reflect.Type
+		ReplyType  reflect.Type
+		numCalls   uint
+	}
+	*/
+	if len(s.method) == 0 { // 提示没有可用 RPC 方法
+		str := ""
+
+		// To help the user, see if a pointer receiver would work.
+		method := suitableMethods(reflect.PointerTo(s.typ), false)
+		if len(method) != 0 {
+			str = "rpc.Register: type " + sname + " has no exported methods of suitable type (hint: pass a pointer to value of that type)"
+		} else {
+			str = "rpc.Register: type " + sname + " has no exported methods of suitable type"
+		}
+		log.Print(str)
+		return errors.New(str)
+	}
+
+	if _, dup := server.serviceMap.LoadOrStore(sname, s); dup { // 将 sname + s 存入 service 的 serviceMap field 中
+		return errors.New("rpc: service already defined: " + sname)
+	}
+	return nil
+}
+```
+
+注意到这里可以展开的为 `suitableMethods` 函数，这里将该类型中符合要求的方法都抽出存放在 `map[string]*methodType` 中：
+
+```go
+// suitableMethods returns suitable Rpc methods of typ. It will log
+// errors if logErr is true.
+func suitableMethods(typ reflect.Type, logErr bool) map[string]*methodType
+```
+
 // TODO…
+
+rpc 完成 register 过程后调用 rpc 包中的 `HandleHTTP` 函数：
+
+```go
+// HandleHTTP registers an HTTP handler for RPC messages to DefaultServer
+// on DefaultRPCPath and a debugging handler on DefaultDebugPath.
+// It is still necessary to invoke http.Serve(), typically in a go statement.
+func HandleHTTP() {
+	DefaultServer.HandleHTTP(DefaultRPCPath, DefaultDebugPath)
+}
+// ...
+const (
+	// Defaults used by HandleHTTP
+	DefaultRPCPath   = "/_goRPC_"
+	DefaultDebugPath = "/debug/rpc"
+)
+```
+
+调用 DefaultServer 的 HandleHTTP 函数，传入疑似路由地址的字符串。
+
+```go
+// HandleHTTP registers an HTTP handler for RPC messages on rpcPath,
+// and a debugging handler on debugPath.
+// It is still necessary to invoke http.Serve(), typically in a go statement.
+func (server *Server) HandleHTTP(rpcPath, debugPath string) {
+	http.Handle(rpcPath, server)
+	http.Handle(debugPath, debugHTTP{server})
+}
+```
+
+果然，后面调用 http 包中的 Handle 函数，为 http 包中的 `DefaultServeMux` 指定路由，那么由此可见，server 是一个满足 http 包中 Handler 接口的类型。
+
+```go
+type Handler interface {
+	ServeHTTP(ResponseWriter, *Request)
+}
+```
+
+可以看到具体实现：
+
+```go
+// ServeHTTP implements an http.Handler that answers RPC requests.
+func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
+	if req.Method != "CONNECT" {
+		w.Header().Set("Content-Type", "text/plain; charset=utf-8")
+		w.WriteHeader(http.StatusMethodNotAllowed)
+		io.WriteString(w, "405 must CONNECT\n")
+		return
+	}
+	conn, _, err := w.(http.Hijacker).Hijack()
+	if err != nil {
+		log.Print("rpc hijacking ", req.RemoteAddr, ": ", err.Error())
+		return
+	}
+	io.WriteString(conn, "HTTP/1.0 "+connected+"\n\n")
+	server.ServeConn(conn)
+}
+```
+
+至此，对于服务端相关调用过程分析结束。
+
+## Client 端过程
+
+// TODO…
+
+# 写在最后
+
+之后笔者将继续学习 rpc 相关领域，下一步去做谷歌的 gRPC 框架的学习，对分布式系统领域进行深入学习。当然，在编程语言上，目前和之后的选择均为 Go 语言优先。（挖坑
