@@ -8,7 +8,6 @@ date: 2022-07-09T18:28:48+08:00
 draft: true
 ---
 
-# Go RPC
 
 本文介绍使用 Go 标准库 net/rpc 简单实现 RPC。
 
