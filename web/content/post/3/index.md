@@ -8,6 +8,8 @@ date: 2022-07-09T18:28:48+08:00
 draft: true
 ---
 
+# Go RPC
+
 本文介绍使用 Go 标准库 net/rpc 简单实现 RPC。
 
 # 调用实现
@@ -348,7 +350,112 @@ func (server *Server) ServeHTTP(w http.ResponseWriter, req *http.Request) {
 
 ## Client 端过程
 
-// TODO…
+在 Client 主要有两步，连接 + 调用。
+
+首先调用 rpc 中的 DialHTTP 函数：
+
+```go
+// DialHTTP connects to an HTTP RPC server at the specified network address
+// listening on the default HTTP RPC path.
+func DialHTTP(network, address string) (*Client, error) {
+	return DialHTTPPath(network, address, DefaultRPCPath)
+}
+```
+
+传入两个 string，第一个为网络协议，第二个为目标地址，返回客户端和错误。
+
+其中调用 DialHTTPPath，传入协议和地址，以及路由路径：
+
+```go
+// DialHTTPPath connects to an HTTP RPC server
+// at the specified network address and path.
+func DialHTTPPath(network, address, path string) (*Client, error) {
+	conn, err := net.Dial(network, address) // 调用 net 包中的 Dial 通过 网络协议 + 地址进行连接
+	if err != nil {
+		return nil, err
+	}
+	io.WriteString(conn, "CONNECT "+path+" HTTP/1.0\n\n")
+
+	// Require successful HTTP response
+	// before switching to RPC protocol.
+	resp, err := http.ReadResponse(bufio.NewReader(conn), &http.Request{Method: "CONNECT"}) // HTTP 连接
+	if err == nil && resp.Status == connected {
+		return NewClient(conn), nil
+	}
+	if err == nil {
+		err = errors.New("unexpected HTTP response: " + resp.Status)
+	}
+	conn.Close()
+	return nil, &net.OpError{
+		Op:   "dial-http",
+		Net:  network + " " + address,
+		Addr: nil,
+		Err:  err,
+	}
+}
+```
+
+连接后调用 Call 或者是 Go 方法进行远程调用，对于 Call 方法：
+
+```go
+// Call invokes the named function, waits for it to complete, and returns its error status.
+func (client *Client) Call(serviceMethod string, args any, reply any) error {
+	call := <-client.Go(serviceMethod, args, reply, make(chan *Call, 1)).Done
+	return call.Error
+}
+```
+
+可以看到实际依然是调用了 Go 方法，Go 方法返回值中取出 Done 管道，该管道吐出东西时，异步调用结束，通过管道对 Go 方法进行封装，实现了同步对远程过程的调用。但是注意到这里同步会一直等待，如果需要设置超时之类的就需要手动调用 Go 方法了。传入参数为 调用服务方法名，调用参数，接收参数。
+
+```go
+// Go invokes the function asynchronously. It returns the Call structure representing
+// the invocation. The done channel will signal when the call is complete by returning
+// the same Call object. If done is nil, Go will allocate a new channel.
+// If non-nil, done must be buffered or Go will deliberately crash.
+func (client *Client) Go(serviceMethod string, args any, reply any, done chan *Call) *Call
+```
+
+Go 方法比 Call 方法传入多一个管道，完成异步调用，返回值为 *Call：
+
+```go
+// Call represents an active RPC.
+type Call struct {
+	ServiceMethod string     // The name of the service and method to call.
+	Args          any        // The argument to the function (*struct).
+	Reply         any        // The reply from the function (*struct).
+	Error         error      // After completion, the error status.
+	Done          chan *Call // Receives *Call when Go is complete.
+}
+```
+
+继续看 Go 方法中实现：
+
+```go
+func (client *Client) Go(serviceMethod string, args any, reply any, done chan *Call) *Call {
+	call := new(Call) // new 一个返回结构
+	call.ServiceMethod = serviceMethod
+	call.Args = args
+	call.Reply = reply // 构造
+	if done == nil {
+		done = make(chan *Call, 10) // buffered.
+	} else {
+		// If caller passes done != nil, it must arrange that
+		// done has enough buffer for the number of simultaneous
+		// RPCs that will be using that channel. If the channel
+		// is totally unbuffered, it's best not to run at all.
+		if cap(done) == 0 {
+			log.Panic("rpc: done channel is unbuffered")
+		}
+	}
+	call.Done = done
+	client.send(call)
+	return call
+}
+```
+
+可以看到，该方法中主要构造了 Call 结构体，并将其返回，其中如果传入 done 管道为 nil 则构建一个 10 buffer 的管道，该 buffer 大概是作为调用的次数缓存。
+
+其中调用 client.send(call)，传入了 call 结构体，send 方法中进行请求发送。
 
 # 写在最后
 
