@@ -13,7 +13,7 @@ draft: true
 
 大佬室友的项目遇到了一个问题，这是一个前后端分离的 web 项目，后端采用的是 go 中的 gin 框架，采用了 cors 处理的中间件，但是在访问一些接口时出现了跨域问题，其返回的报头中并没有
 
-```go
+```
 Access-Control-Allow-Origin: *
 ```
 
@@ -41,14 +41,14 @@ Access-Control-Allow-Origin: *
 
 在 gin 框架中的默认配置中，有：
 
-```go
+```
 RedirectTrailingSlash:  true,
 // ....
 ```
 
 即将 RedirectRailingSlash 置为 true. 该参数的含义为：
 
-```go
+```go 
 type Engine struct {
 	RouterGroup
 
