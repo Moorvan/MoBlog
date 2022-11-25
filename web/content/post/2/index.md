@@ -4,7 +4,7 @@ tags:
 
 title: "Go 中命名规范"
 date: 2022-06-27T21:20:52+08:00
-draft: true
+draft: false
 ---
 
 > 计算机科学只存在两个难题：缓存失效和命名。—— Phil KarIton

@@ -5,7 +5,7 @@ tags:
 
 title: "当 trailing slash 遇到 CORS"
 date: 2022-11-21T23:36:00+08:00
-draft: true
+draft: false 
 ---
 
 

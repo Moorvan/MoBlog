@@ -6,7 +6,7 @@ tags:
 
 title: "基于 Notion 的日记式无压笔记体系"
 date: 2022-06-16T16:32:44+08:00
-draft: true
+draft: false
 ---
 
 正文可以直接从第 1 节开始。
